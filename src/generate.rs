@@ -10,6 +10,7 @@ use crate::{model, tokenizer};
 pub fn generate(
     input: &str,
     tokens_to_generate: u32,
+    temperature: f64,
     transformer_config: &model::TransformerConfig,
     dataset: &tokenizer::Dataset,
     device: Device,
@@ -40,7 +41,7 @@ pub fn generate(
         );
 
         // Forward through model.
-        let logits = transformer.forward_t(&context, false);
+        let logits = transformer.forward_t(&context, false) / temperature;
         let probabilities = logits.softmax(-1, Kind::Float);
         let sample = probabilities
             .multinomial(1, false)

@@ -235,6 +235,7 @@ impl Dataset {
     }
 
     /// Encode an entry to a tokenized tensor.
+    /// Returns a tensor of shape `(entry.len())`.
     pub fn encode(&self, entry: &str, device: Device) -> Tensor {
         // Encode data char-by-char.
         let mut entry = entry
@@ -278,6 +279,7 @@ impl Dataset {
     }
 
     /// Decode a tokenized tensor back into a string.
+    /// Expects an input of shape `(entry_length)`.
     pub fn decode(&self, encoded_entry: &Tensor) -> anyhow::Result<String> {
         // Convert to vec.
         let mut encoded_entry = Vec::<i64>::try_from(encoded_entry)?

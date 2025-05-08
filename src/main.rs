@@ -80,6 +80,11 @@ enum Command {
         /// Number of tokens to generate.
         #[arg(long)]
         token_count: u32,
+
+        /// Temperature.
+        #[arg(long)]
+        #[clap(default_value_t = 0.7)]
+        temperature: f64,
     },
 }
 
@@ -210,6 +215,7 @@ fn main() -> anyhow::Result<()> {
             input,
             token_count,
             transformer_config_file,
+            temperature,
         } => {
             if input.is_empty() {
                 bail!("Input must be non-empty.")
@@ -228,8 +234,15 @@ fn main() -> anyhow::Result<()> {
             let dataset = tokenizer::Dataset::from_ron(dataset_file, device)?;
 
             // Generate.
-            let result =
-                generate::generate(&input, token_count, &config, &dataset, device, &transformer)?;
+            let result = generate::generate(
+                &input,
+                token_count,
+                temperature,
+                &config,
+                &dataset,
+                device,
+                &transformer,
+            )?;
             println!("{result}");
         }
     }
