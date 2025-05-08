@@ -1,0 +1,9 @@
+.DS_Store
+
+/target
+libtorch
+
+training
+datasets
+
+.cargo/config.toml
