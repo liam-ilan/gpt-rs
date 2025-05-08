@@ -1,34 +1,40 @@
 //! Generate text.
 
-use tch::{nn::ModuleT, Device, Kind};
+use std::cmp::min;
+
+use tch::{nn::ModuleT, Device, Kind, Tensor};
 
 use crate::{model, tokenizer};
 
-/// Mutate `input`, adding `tokens_to_generate` tokens.
+/// Generate `tokens_to_generate` tokens, add them to `input`, and return the result.
 pub fn generate(
-    input: &mut String,
+    input: &str,
     tokens_to_generate: u32,
     transformer_config: &model::TransformerConfig,
     dataset: &tokenizer::Dataset,
     device: Device,
     transformer: &impl ModuleT,
-) -> anyhow::Result<()> {
-    for _ in 0..tokens_to_generate {
-        // Select last `context_length` chars.
-        let context = &input[input
-            .len()
-            .saturating_sub(transformer_config.context_length as usize)..];
+) -> anyhow::Result<String> {
+    let transformer_context_length = transformer_config.context_length as i64;
 
-        // Encode.
-        let context = dataset.encode(context, device);
-        let real_context_length = context.size()[0];
+    // Encode input.
+    println!("Encoding input.");
+    let mut result = dataset.encode(input, device);
 
-        // Pad context with arbritrary char so that transformer can accept it.
+    for i in 0..tokens_to_generate {
+        println!("Generating token {i}.");
+
+        // Select last `context_length` tokens.
+        // If less than `context_length` tokens are not available,
+        // just use the whole input.
+        let result_length = result.size()[0];
+        let context_start = (result_length - transformer_context_length).max(0);
+        let context_length = min(result_length, transformer_context_length);
+        let context = result.narrow(-1, context_start, context_length);
+
+        // Pad context with an arbritrary char so that transformer can accept it.
         let context = context.pad(
-            [
-                0,
-                transformer_config.context_length as i64 - real_context_length,
-            ],
+            [0, transformer_context_length - context_length],
             "constant",
             0.,
         );
@@ -41,12 +47,11 @@ pub fn generate(
             .view([transformer_config.context_length as i64]);
 
         // Grab last token from input context.
-        let next_token = sample.get(real_context_length - 1).view([1]);
-
-        // Decode and mutate result.
-        let next_token = dataset.decode(&next_token)?;
-        input.push_str(next_token.as_str());
+        let next_token = sample.get(context_length - 1).view([1]);
+        result = Tensor::cat(&[&result, &next_token], -1);
     }
 
-    Ok(())
+    // Decode.
+    println!("Decoding result.");
+    dataset.decode(&result)
 }

@@ -228,15 +228,8 @@ fn main() -> anyhow::Result<()> {
             let dataset = tokenizer::Dataset::from_ron(dataset_file, device)?;
 
             // Generate.
-            let mut result = input.clone();
-            generate::generate(
-                &mut result,
-                token_count,
-                &config,
-                &dataset,
-                device,
-                &transformer,
-            )?;
+            let result =
+                generate::generate(&input, token_count, &config, &dataset, device, &transformer)?;
             println!("{result}");
         }
     }
