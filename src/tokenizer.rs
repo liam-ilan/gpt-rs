@@ -50,23 +50,24 @@ struct Merging {
     to: usize,
 }
 
+/// A tokenized dataset.
 #[derive(Serialize, Deserialize, Debug)]
 pub struct Dataset {
-    /// Charecter-by-charecter encoding, mapping from char to id.
+    /// Character-by-character encoding, mapping from char to id.
     char_to_id: HashMap<char, usize>,
 
-    /// Charecter-by-charecter encoding, mapping from id to char.
+    /// Character-by-character encoding, mapping from id to char.
     id_to_char: HashMap<usize, char>,
 
-    // IDs to merge, in order.
+    /// IDs to merge, in order.
     mergings: Vec<Merging>,
 
-    // Encoded dataset.
+    /// Encoded dataset.
     #[serde(
         deserialize_with = "deserialize_encoded_data",
         serialize_with = "serialize_encoded_data"
     )]
-    pub encoded_data: Vec<Tensor>,
+    encoded_data: Vec<Tensor>,
 }
 
 impl Dataset {
@@ -111,6 +112,13 @@ impl Dataset {
             .map(|(key, item)| (*item, *key))
             .collect::<HashMap<char, usize>>();
 
+        // Keep track of ids that should not merge into new tokens.
+        let ids_not_to_merge = [' ', '\n']
+            .iter()
+            .filter_map(|id| char_to_id.get(id))
+            .copied()
+            .collect::<Vec<_>>();
+
         if char_to_id.len() > token_count {
             bail!(
                 "There are {} unique chars in data, but the requested token count was {}.",
@@ -141,6 +149,11 @@ impl Dataset {
             for entry in encoded_data.as_slice() {
                 for pair in entry.windows(2) {
                     let pair = [pair[0], pair[1]];
+
+                    // Skip pairs with spaces.
+                    if pair.iter().any(|id| ids_not_to_merge.contains(id)) {
+                        continue;
+                    }
 
                     match pair_counts.entry(pair) {
                         Entry::Occupied(mut entry) => {

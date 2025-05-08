@@ -35,7 +35,7 @@ This will generate `.safetensors` checkpoints in a directory under `./training`.
 
 We can now generate text with the tokenized dataset.
 ```sh
-cargo run \
+cargo run -- generate \
 --dataset-file datasets/dataset_512_stories.parquet.ron \
 --transformer-config-file example/transformer_config.ron \
 --token-count <TOKEN_COUNT> \
