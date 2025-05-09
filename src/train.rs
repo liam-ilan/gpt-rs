@@ -1,6 +1,9 @@
 //! Train a [`model::transformer`].
+//! 
+//! Uses an AdamW optimizer,
+//! implements a linear warmup and cosine decay.
 
-use std::{fs, path::Path, time::Instant};
+use std::{f64::consts::PI, fs, path::Path, time::Instant};
 
 use chrono::Utc;
 use serde::{Deserialize, Serialize};
@@ -14,8 +17,14 @@ use crate::model;
 /// Configuration for [`train`].
 #[derive(Debug, Serialize, Deserialize)]
 pub struct TrainConfig {
-    /// Learning rate.
-    pub learning_rate: f64,
+    /// Minimum learning rate for linear warmup with cosine decay.
+    pub min_learning_rate: f64,
+
+    /// Maximum learning rate for linear warmup with cosine decay.
+    pub max_learning_rate: f64,
+
+    /// Number of iterations to warmup training with.
+    pub warmup_iterations: usize,
 
     /// Number of batches to train on before stopping.
     pub training_iterations: usize,
@@ -28,18 +37,6 @@ pub struct TrainConfig {
 
     /// Number of contexts computed at the same time in a single batch.
     pub contexts_per_batch: u32,
-}
-
-impl Default for TrainConfig {
-    fn default() -> Self {
-        Self {
-            learning_rate: 3e-4,
-            training_iterations: 10000,
-            evaluation_interval: 100,
-            evaluation_iterations: 5,
-            contexts_per_batch: 128,
-        }
-    }
 }
 
 /// Compute a transformer's loss on a given batch using cross-entropy.
@@ -127,13 +124,27 @@ pub fn train(
     fs::create_dir_all(output_directory)?;
 
     // Initialize optimizer.
-    let mut optimizer = nn::AdamW::default().build(var_store, train_config.learning_rate)?;
+    let mut optimizer = nn::AdamW::default().build(var_store, train_config.min_learning_rate)?;
     optimizer.set_weight_decay_group(model::NO_WEIGHT_DECAY_GROUP, 0.);
     optimizer.set_weight_decay_group(model::WEIGHT_DECAY_GROUP, 0.1);
 
     // Training loop.
     for index in 0..train_config.training_iterations {
         let start = Instant::now();
+
+        // Compute learning rate using cosine-decay with warmup.
+        let normailzed_learning_rate = if index < train_config.warmup_iterations {
+            index as f64 / train_config.warmup_iterations as f64
+        } else {
+            let cosine_decay_index = index - train_config.warmup_iterations;
+            let cosine_decay_steps = train_config.training_iterations - train_config.warmup_iterations;
+            ((PI * cosine_decay_index as f64 / cosine_decay_steps as f64).cos() + 1.) / 2.
+        };
+        let learning_rate = normailzed_learning_rate * 
+                (train_config.max_learning_rate - train_config.min_learning_rate) + 
+                train_config.min_learning_rate;
+
+        optimizer.set_lr(learning_rate);
 
         // Evaluate and save the model every evaluation interval.
         if index % train_config.evaluation_interval == 0 {
@@ -159,9 +170,14 @@ pub fn train(
             true,
         );
         optimizer.backward_step_clip(&loss, 0.5);
-        let delta = Instant::now().duration_since(start);
+
+        let delta = start.elapsed();
         let delta_ms = delta.as_millis();
-        println!("Iteration {index} took {delta_ms} ms")
+
+        println!(
+            "Iteration {index} took {delta_ms} ms, learning rate: {learning_rate:.8}, loss: {:.3}",
+            f64::try_from(loss)?
+        )
     }
 
     // Evaluate final model.
