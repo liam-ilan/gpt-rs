@@ -1,6 +1,6 @@
 (
     learning_rate: 2e-4,
-    training_iterations: 10000,
+    training_iterations: 30000,
     evaluation_interval: 100,
     evaluation_iterations: 5,
     contexts_per_batch: 32

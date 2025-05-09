@@ -113,7 +113,15 @@ impl Dataset {
             .collect::<HashMap<char, usize>>();
 
         // Keep track of ids that should not merge into new tokens.
-        let ids_not_to_merge = [' ', '\n']
+        let ids_not_to_merge = ['"', '\n']
+            .iter()
+            .filter_map(|id| char_to_id.get(id))
+            .copied()
+            .collect::<Vec<_>>();
+
+        // Keep track of tokens that start with spaces (starting with just ' ').
+        // We will not allow tokens to merge with spaces, unless the spaces are at the start.
+        let mut space_starting_tokens = [' ']
             .iter()
             .filter_map(|id| char_to_id.get(id))
             .copied()
@@ -150,8 +158,13 @@ impl Dataset {
                 for pair in entry.windows(2) {
                     let pair = [pair[0], pair[1]];
 
-                    // Skip pairs with spaces.
+                    // Skip pairs with non-merge tokens.
                     if pair.iter().any(|id| ids_not_to_merge.contains(id)) {
+                        continue;
+                    }
+
+                    // Skip pairs who's second item has a space at the start.
+                    if space_starting_tokens.contains(&pair[1]) {
                         continue;
                     }
 
@@ -210,6 +223,11 @@ impl Dataset {
                         old_entry.next();
                     }
                 }
+            }
+
+            // If the most common pair has a space at the start, track it.
+            if space_starting_tokens.contains(&most_common_pair[0]) {
+                space_starting_tokens.push(current_token_count);
             }
 
             current_token_count += 1;
