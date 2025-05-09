@@ -11,6 +11,7 @@ use std::{
 
 use anyhow::bail;
 use parquet::file::reader::{FileReader, SerializedFileReader};
+use rand::{rngs::StdRng, SeedableRng};
 use tch::{nn, Device};
 
 use clap::{Parser, Subcommand};
@@ -21,6 +22,14 @@ pub struct App {
     /// Subcommand.
     #[clap(subcommand)]
     command: Command,
+
+    /// Seed to use for all RNG.
+    #[arg(long)]
+    seed: Option<u32>,
+
+    /// Flag to use MPS (MacOS).
+    #[arg(long)]
+    mps: bool,
 }
 
 /// Clap app commands.
@@ -57,6 +66,11 @@ enum Command {
         /// Custom transformer configuration.
         #[arg(long)]
         transformer_config_file: PathBuf,
+
+        /// Percentage of samples to allocate to training.
+        #[arg(long)]
+        #[clap(default_value_t = 0.9)]
+        training_percentage: f64,
     },
 
     /// Use a model to generate text.
@@ -88,11 +102,23 @@ enum Command {
     },
 }
 
-const TRAINING_DATA_PERCENTAGE: f64 = 0.9;
-
 fn main() -> anyhow::Result<()> {
-    let command = App::parse().command;
-    let device = Device::cuda_if_available();
+    let args = App::parse();
+    let command = args.command;
+
+    // Seed RNGs with provided seed if it exists.
+    let rng = RefCell::new(if let Some(seed) = args.seed {
+        tch::manual_seed(seed as i64);
+        StdRng::seed_from_u64(seed as u64)
+    } else {
+        StdRng::from_os_rng()
+    });
+
+    let device = if args.mps {
+        Device::Mps
+    } else {
+        Device::cuda_if_available()
+    };
 
     match command {
         // Tokenize a file and output it.
@@ -151,9 +177,8 @@ fn main() -> anyhow::Result<()> {
             dataset_file,
             train_config_file,
             transformer_config_file,
+            training_percentage,
         } => {
-            let rng = RefCell::new(rand::rng());
-
             // Load config.
             let transformer_config = fs::read_to_string(transformer_config_file)?;
             let transformer_config: model::TransformerConfig =
@@ -176,7 +201,7 @@ fn main() -> anyhow::Result<()> {
 
             // Find index to split entries on.
             let training_testing_split =
-                (dataset.entry_count() as f64 * TRAINING_DATA_PERCENTAGE) as usize;
+                (dataset.entry_count() as f64 * training_percentage) as usize;
 
             // Create getters for training/testing batches.
             let get_training_batch = || {

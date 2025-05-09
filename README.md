@@ -18,7 +18,7 @@ Let's train a model to mimic the [tinystories-10k](https://huggingface.co/datase
 
 Tokenize the `stories.parquet` dataset. 
 ```sh
-cargo run --release -- tokenize \
+cargo run --release -- --seed 1234 tokenize \
 --data-parquet stories.parquet \
 --transformer-config-file example/transformer_config.ron
 ```
@@ -26,7 +26,7 @@ This will generate a file in `datasets/dataset_512_stories.parquet.ron`, contain
 
 Next, train a model on the tokenized dataset.
 ```sh
-cargo run --release -- train \
+cargo run --release -- --seed 1234 train \
 --dataset-file datasets/dataset_512_stories.parquet.ron \
 --train-config-file example/train_config.ron \
 --transformer-config-file example/transformer_config.ron
@@ -35,7 +35,7 @@ This will generate `.safetensors` checkpoints in a directory under `./training`.
 
 We can now generate text with the tokenized dataset.
 ```sh
-cargo run --release -- generate \
+cargo run --release -- --seed 1234 generate \
 --dataset-file datasets/dataset_512_stories.parquet.ron \
 --transformer-config-file example/transformer_config.ron \
 --token-count <TOKEN_COUNT> \
