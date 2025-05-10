@@ -1,5 +1,5 @@
 //! Train a [`model::transformer`].
-//! 
+//!
 //! Uses an AdamW optimizer,
 //! implements a linear warmup and cosine decay.
 
@@ -137,12 +137,13 @@ pub fn train(
             index as f64 / train_config.warmup_iterations as f64
         } else {
             let cosine_decay_index = index - train_config.warmup_iterations;
-            let cosine_decay_steps = train_config.training_iterations - train_config.warmup_iterations;
+            let cosine_decay_steps =
+                train_config.training_iterations - train_config.warmup_iterations;
             ((PI * cosine_decay_index as f64 / cosine_decay_steps as f64).cos() + 1.) / 2.
         };
-        let learning_rate = normailzed_learning_rate * 
-                (train_config.max_learning_rate - train_config.min_learning_rate) + 
-                train_config.min_learning_rate;
+        let learning_rate = normailzed_learning_rate
+            * (train_config.max_learning_rate - train_config.min_learning_rate)
+            + train_config.min_learning_rate;
 
         optimizer.set_lr(learning_rate);
 
