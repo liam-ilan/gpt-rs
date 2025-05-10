@@ -45,7 +45,7 @@ Some details:
 
 The BPE tokenizer can be found under [`./src/tokenizer.rs`](./src/tokeinzer.rs). Tokenized datasets are serialized into `.ron` (Rusty-Object-Notation) files for later use. The tokenizer is modified from a classing BPE to include space-prefixing, no merges across words, and some do-not-merge tokens.
 
-The training loop can be found under [`./src/train.rs`](./src/train.rs). It utilizes an AdamW optimizer.
+The training loop can be found under [`./src/train.rs`](./src/train.rs). It utilizes an AdamW optimizer. There is no learning rate scheduling in this branch, take a look at the [`linear_warmup-cosine-decay` branch](https://github.com/liam-ilan/gpt-rs/tree/linear-warmup-cosine-decay) for an implementation of a more refined scheduler (though it may be out of date with `main`).
 
 ## Train a Model from Scratch
 ### Tokenization
