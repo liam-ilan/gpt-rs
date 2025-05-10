@@ -128,6 +128,8 @@ pub fn train(
 
     // Initialize optimizer.
     let mut optimizer = nn::AdamW::default().build(var_store, train_config.learning_rate)?;
+    optimizer.set_weight_decay_group(model::NO_WEIGHT_DECAY_GROUP, 0.);
+    optimizer.set_weight_decay_group(model::WEIGHT_DECAY_GROUP, 0.1);
 
     // Training loop.
     for index in 0..train_config.training_iterations {

@@ -51,6 +51,37 @@ pub struct TransformerConfig {
     pub residual_dropout: f64,
 }
 
+// Explicitly manage which parameters do apply weight decay to.
+// Used to omit layer normalization, embedding, and bias from weight decay.
+/// Group ID to not apply weight decay to.
+pub const NO_WEIGHT_DECAY_GROUP: usize = 0;
+
+/// Group ID to apply weight decay to.
+pub const WEIGHT_DECAY_GROUP: usize = 1;
+
+// Also create our own linear layer instantiators so we can control weight decay.
+// See the tch-rs min-gpt example.
+/// Linear layer, with no weight decay on bias terms.
+fn linear(var_store: &nn::Path, in_dim: i64, out_dim: i64) -> nn::Linear {
+    let weight_decay = var_store.set_group(WEIGHT_DECAY_GROUP);
+    let no_weight_decay = var_store.set_group(NO_WEIGHT_DECAY_GROUP);
+
+    nn::Linear {
+        ws: weight_decay.randn("weight", &[out_dim, in_dim], 0.0, 0.02),
+        bs: Some(no_weight_decay.zeros("bias", &[out_dim])),
+    }
+}
+
+/// Linear layer with no bias.
+fn linear_no_bias(var_store: &nn::Path, in_dim: i64, out_dim: i64) -> nn::Linear {
+    let weight_decay = var_store.set_group(WEIGHT_DECAY_GROUP);
+
+    nn::Linear {
+        ws: weight_decay.randn("weight", &[out_dim, in_dim], 0.0, 0.02),
+        bs: None,
+    }
+}
+
 /// Feed forward layer.
 ///
 /// Composed of:
@@ -67,18 +98,16 @@ fn feed_forward(var_store: &nn::Path, config: &TransformerConfig) -> impl nn::Mo
     let feed_forward_dropout = config.feed_forward_dropout;
 
     nn::seq_t()
-        .add(nn::linear(
-            var_store / "input",
+        .add(linear(
+            &(var_store / "input"),
             input_output_size,
             hidden_size,
-            Default::default(),
         ))
         .add_fn(|input| input.relu())
-        .add(nn::linear(
-            var_store / "output",
+        .add(linear(
+            &(var_store / "output"),
             hidden_size,
             input_output_size,
-            Default::default(),
         ))
         .add_fn_t(move |input, train| input.dropout(feed_forward_dropout, train))
 }
@@ -96,26 +125,11 @@ fn attention_head(var_store: &nn::Path, config: &TransformerConfig) -> impl nn::
     let attention_dropout = config.attention_dropout;
 
     // Layers for query, key, and value.
-    let query = nn::linear(
-        var_store / "query",
-        embedding_size,
-        head_size,
-        Default::default(),
-    );
+    let query = linear(&(var_store / "query"), embedding_size, head_size);
 
-    let key = nn::linear(
-        var_store / "key",
-        embedding_size,
-        head_size,
-        Default::default(),
-    );
+    let key = linear(&(var_store / "key"), embedding_size, head_size);
 
-    let value = nn::linear(
-        var_store / "value",
-        embedding_size,
-        head_size,
-        Default::default(),
-    );
+    let value = linear(&(var_store / "value"), embedding_size, head_size);
 
     // Mask used to ensure future tokens have no affect on past ones.
     // If omit_mask[token_2_index][token_1_index] is true,
@@ -202,12 +216,7 @@ fn multiple_attention_head(var_store: &nn::Path, config: &TransformerConfig) -> 
         .collect::<Vec<_>>();
 
     // Final projection linear layer.
-    let projection = nn::linear(
-        var_store / "projection",
-        embedding_size,
-        embedding_size,
-        Default::default(),
-    );
+    let projection = linear(&(var_store / "projection"), embedding_size, embedding_size);
 
     nn::func_t(move |input, train| {
         // Forward all attention heads.
@@ -296,6 +305,10 @@ fn block(var_store: &nn::Path, config: &TransformerConfig) -> impl nn::ModuleT {
 ///
 /// The output is of shape `(..., context_length, vocab_size)`.
 pub fn transformer(var_store: &nn::Path, config: &TransformerConfig) -> impl nn::ModuleT {
+    // By default, do not apply weight decay.
+    // All weight decay will be explicitly allowed.
+    let var_store = &var_store.set_group(NO_WEIGHT_DECAY_GROUP);
+
     // Extract config.
     let block_count = config.block_count;
     let embedding_dropout = config.embedding_dropout;
@@ -337,12 +350,9 @@ pub fn transformer(var_store: &nn::Path, config: &TransformerConfig) -> impl nn:
     );
 
     // Final conversion from embeddings to logits.
-    let linear_head = nn::linear(
-        var_store / "linear_head",
-        embedding_size,
-        vocab_size,
-        Default::default(),
-    );
+    // No bias, since softmax is applied to logits to obtain probabilities,
+    // and softmax is invariant to bias shifts.
+    let linear_head = linear_no_bias(&(var_store / "linear_head"), embedding_size, vocab_size);
 
     // Store indicies of input context on device.
     let indicies = Tensor::arange(context_length, (Kind::Int64, var_store.device()));
