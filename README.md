@@ -95,3 +95,6 @@ Custom models and training strategies can be configured with `.ron` files. See [
 
 - Run `cargo run --release -- -h` to get information on what commands are available, and upper level arguments (ie. seed, MPS). 
 - Run `cargo run --release -- <COMMAND> -h` to get information on what arguments specific commands take.
+
+## Author
+Built by [Liam Ilan](https://www.liamilan.com/), made in Canada 🇨🇦 ❤️.
