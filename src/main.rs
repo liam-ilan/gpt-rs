@@ -140,14 +140,10 @@ fn main() -> anyhow::Result<()> {
                 .map(|record| {
                     let record = record?;
                     let columns = record.into_columns();
-                    if columns.len() != 1 {
-                        bail!("Expected 1 column in each row of .parquet file.")
-                    }
-
                     let (_, field) = &columns[0];
                     Ok(field.to_string())
                 })
-                .collect::<Result<Vec<String>, _>>()?;
+                .collect::<anyhow::Result<Vec<String>>>()?;
 
             // Tokenize and create dataset.
             let dataset = tokenizer::Dataset::new(fields, config.vocab_size as usize, device)?;
