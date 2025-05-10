@@ -36,17 +36,6 @@ cargo run --release -- generate \
 > 
 > After that, Timmy and his family went to the park to play. They saw something very big and wide and round. They decided to pretend it was a big, red car to play. They played with the car and had lots of fun.
 
-## Navigating the Codebase
-This implementation was built to be as verbose as possible. The core of the model can be found under [`./src/model.rs`](./src/model.rs), heavily inspired by Karpathy's [minGPT](https://github.com/karpathy/minGPT).
-
-Some details:
-- 4 dropout layers per block, one post feed forward, one post attention head, and one on each residual [Residual Dropout: A Simple Approach to Improve Transformer’s Data Efficiency](https://aclanthology.org/2024.sigul-1.35.pdf). There is also a dropout applied post embedding.
-- Layer norm is applied prior to the multi-attention head/feed forward in each block (Pre-LN), see [On Layer Normalization in the Transformer Architecture](https://arxiv.org/pdf/2002.04745).
-
-The BPE tokenizer can be found under [`./src/tokenizer.rs`](./src/tokeinzer.rs). Tokenized datasets are serialized into `.ron` (Rusty-Object-Notation) files for later use. The tokenizer is modified from a classing BPE to include space-prefixing, no merges across words, and some do-not-merge tokens.
-
-The training loop can be found under [`./src/train.rs`](./src/train.rs). It utilizes an AdamW optimizer. There is no learning rate scheduling in this branch, take a look at the [`linear_warmup-cosine-decay` branch](https://github.com/liam-ilan/gpt-rs/tree/linear-warmup-cosine-decay) for an implementation of a more refined scheduler (though it may be out of date with `main`).
-
 ## Train a Model from Scratch
 ### Tokenization
 The [`tinystories-10k`](https://huggingface.co/datasets/flpelerin/tinystories-10k) dataset is included in this repository under `./stories.parquet`. Any `.parquet` file, who's first column contains the text entries to train on, can be used.
@@ -58,7 +47,6 @@ cargo run --release -- --seed 1234 tokenize \
 --transformer-config-file example/transformer_config.ron
 ```
 This will generate a file in `datasets/dataset_2048_stories.parquet.ron`, containing the tokenized dataset.
-
 
 ### Training
 Next, train a model on the tokenized dataset.
@@ -90,3 +78,20 @@ cargo run --release -- generate \
 --input <INPUT> \
 --transformer-safetensors <SAFETENSORS>
 ```
+
+## Navigating the Codebase
+This implementation was built to be as verbose as possible. The core of the model can be found under [`./src/model.rs`](./src/model.rs), heavily inspired by Karpathy's [minGPT](https://github.com/karpathy/minGPT).
+
+Some details:
+- 4 dropout layers per block, one post feed forward, one post attention head, and one on each residual [Residual Dropout: A Simple Approach to Improve Transformer’s Data Efficiency](https://aclanthology.org/2024.sigul-1.35.pdf). There is also a dropout applied post embedding.
+- Layer norm is applied prior to the multi-attention head/feed forward in each block (Pre-LN), see [On Layer Normalization in the Transformer Architecture](https://arxiv.org/pdf/2002.04745).
+
+The BPE tokenizer can be found under [`./src/tokenizer.rs`](./src/tokeinzer.rs). Tokenized datasets are serialized into `.ron` (Rusty-Object-Notation) files for later use. The tokenizer is modified from a classing BPE to include space-prefixing, no merges across words, and some do-not-merge tokens.
+
+The training loop can be found under [`./src/train.rs`](./src/train.rs). It utilizes an AdamW optimizer. There is no learning rate scheduling in this branch, take a look at the [`linear_warmup-cosine-decay` branch](https://github.com/liam-ilan/gpt-rs/tree/linear-warmup-cosine-decay) for an implementation of a more refined scheduler (though it may be out of date with `main`).
+
+## Advanced Usage
+Custom models and training strategies can be configured with `.ron` files. See [`./example/train_config.ron`](./example/train_config.ron) and [`./example/transformer_config.ron`](./example/transformer_config.ron) for example configuration.
+
+- Run `cargo run --release -- -h` to get information on what commands are available, and upper level arguments (ie. seed, MPS). 
+- Run `cargo run --release -- <COMMAND> -h` to get information on what arguments specific commands take.
