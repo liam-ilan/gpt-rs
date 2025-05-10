@@ -3,7 +3,7 @@
 //! See <https://en.wikipedia.org/wiki/Byte_pair_encoding>.
 
 use std::{
-    collections::{hash_map::Entry, HashMap, HashSet},
+    collections::{btree_map::Entry, BTreeMap, BTreeSet},
     fs,
     io::Write,
     ops::Range,
@@ -54,10 +54,10 @@ struct Merging {
 #[derive(Serialize, Deserialize, Debug)]
 pub struct Dataset {
     /// Character-by-character encoding, mapping from char to id.
-    char_to_id: HashMap<char, usize>,
+    char_to_id: BTreeMap<char, usize>,
 
     /// Character-by-character encoding, mapping from id to char.
-    id_to_char: HashMap<usize, char>,
+    id_to_char: BTreeMap<usize, char>,
 
     /// IDs to merge, in order.
     mergings: Vec<Merging>,
@@ -102,15 +102,15 @@ impl Dataset {
         let id_to_char = data
             .join("")
             .chars()
-            .collect::<HashSet<char>>()
+            .collect::<BTreeSet<char>>()
             .into_iter()
             .enumerate()
-            .collect::<HashMap<usize, char>>();
+            .collect::<BTreeMap<usize, char>>();
 
         let char_to_id = id_to_char
             .iter()
             .map(|(key, item)| (*item, *key))
-            .collect::<HashMap<char, usize>>();
+            .collect::<BTreeMap<char, usize>>();
 
         // Keep track of ids that should not merge into new tokens.
         let ids_not_to_merge = ['"', '\n']
@@ -153,7 +153,7 @@ impl Dataset {
             println!("Creating token #{}.", current_token_count + 1);
 
             // Count pairs in data.
-            let mut pair_counts: HashMap<[usize; 2], usize> = HashMap::new();
+            let mut pair_counts: BTreeMap<[usize; 2], usize> = BTreeMap::new();
             for entry in encoded_data.as_slice() {
                 for pair in entry.windows(2) {
                     let pair = [pair[0], pair[1]];
@@ -349,7 +349,7 @@ impl Dataset {
         let samples = entries
             .map(|&entry| {
                 let entry_length = entry.size()[0];
-                let start = rand::random_range(0..=(entry_length - batch_length));
+                let start = rng.random_range(0..=(entry_length - batch_length));
                 entry.narrow(-1, start, batch_length)
             })
             .collect::<Vec<_>>();
