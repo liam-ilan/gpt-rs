@@ -1,5 +1,5 @@
 # `gpt-rs`
-An implementation of a casual decoder transformer and BPE tokeinzer.
+An implementation of a causal decoder transformer and BPE tokeinzer.
 
 *Built with Rust 🦀 and [`tch-rs`](https://github.com/LaurentMazare/tch-rs) 🔥.*
 
