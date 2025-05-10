@@ -28,17 +28,15 @@ cargo run --release -- generate \
 --transformer-safetensors example/trained_transformer.safetensors
 ```
 
-```
-Once upon a time, there was a little boy named Timmy. Timmy loved to play with his toys to drink, especially his favorite toy truck. One day, Timmy's mommy said, "Timmy, I'm going to the park with locks." Timmy was very excited and started to play with his toys all day.
-
-As they were playing, Timmy saw a shovel near the corner of the grass. He asked his mommy if he could buy it on the floor. Billy said yes, but Timmy said no.
-
-After dinner, Timmy went outside and found a nice jeep. She asked Timmy to take his toy car and they fold it together. Timmy was so happy that he had found the toy car to sit in the mailbox.
-
-After a while, Timmy went back home and found it under the cereal bed. He started to cry and his mom said, "Wow, mommy! Give it back to your room!" Timmy smiled and said, "Thank you, Timmy! You can make it go too fast." From that day on, Timmy always made sure to always ask his mom if he could have a new toy for his sister." 
-
-Timmy listened to his mom and said, "I will go to the store to play with my
-```
+> Once upon a time, there was a little boy named Timmy. Timmy loved to play with his toys to drink, especially his favorite toy truck. One day, Timmy's mommy said, "Timmy, I'm going to the park with locks." Timmy was very excited and started to play with his toys all day.
+> 
+> As they were playing, Timmy saw a shovel near the corner of the grass. He asked his mommy if he could buy it on the floor. Billy said yes, but Timmy said no.
+> 
+> After dinner, Timmy went outside and found a nice jeep. She asked Timmy to take his toy car and they fold it together. Timmy was so happy that he had found the toy car to sit in the mailbox.
+> 
+> After a while, Timmy went back home and found it under the cereal bed. He started to cry and his mom said, "Wow, mommy! Give it back to your room!" Timmy smiled and said, "Thank you, Timmy! You can make it go too fast." From that day on, Timmy always made sure to always ask his mom if he could have a new toy for his sister." 
+> 
+> Timmy listened to his mom and said, "I will go to the store to play with my
 ## Train a Model from Scratch
 
 ### Tokenization
