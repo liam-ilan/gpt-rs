@@ -51,23 +51,6 @@ pub struct TransformerConfig {
     pub residual_dropout: f64,
 }
 
-impl Default for TransformerConfig {
-    fn default() -> Self {
-        Self {
-            vocab_size: 70,
-            embedding_size: 512,
-            context_length: 64,
-            head_count: 8,
-            block_count: 6,
-            feed_forward_multiplier: 4,
-            embedding_dropout: 0.1,
-            attention_dropout: 0.1,
-            feed_forward_dropout: 0.1,
-            residual_dropout: 0.1,
-        }
-    }
-}
-
 /// Feed forward layer.
 ///
 /// Composed of:

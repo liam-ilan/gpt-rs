@@ -37,8 +37,19 @@ cargo run --release -- generate \
 > After a while, Timmy went back home and found it under the cereal bed. He started to cry and his mom said, "Wow, mommy! Give it back to your room!" Timmy smiled and said, "Thank you, Timmy! You can make it go too fast." From that day on, Timmy always made sure to always ask his mom if he could have a new toy for his sister." 
 > 
 > Timmy listened to his mom and said, "I will go to the store to play with my
-## Train a Model from Scratch
 
+## Navigating the Codebase
+This implementation was built to be as verbose as possible. The core of the model can be found under [`./src/model.rs`](./src/model.rs), heavily inspired by Karpathy's [minGPT](https://github.com/karpathy/minGPT).
+
+Some details:
+- 4 dropout layers per block, one post feed forward, one post attention head, and one on each residual [Residual Dropout: A Simple Approach to Improve Transformer’s Data Efficiency](https://aclanthology.org/2024.sigul-1.35.pdf). There is also a dropout applied post embedding.
+- Layer norm is applied prior to the multi-attention head/feed forward in each block (Pre-LN), see [On Layer Normalization in the Transformer Architecture](https://arxiv.org/pdf/2002.04745).
+
+The BPE tokenizer can be found under [`./src/tokenizer.rs`](./src/tokeinzer.rs). Tokenized datasets are serialized into `.ron` (Rusty-Object-Notation) files for later use. The tokenizer is modified from a classing BPE to include space-prefixing, no merges across words, and some do-not-merge tokens.
+
+The training loop can be found under [`./src/train.rs`](./src/train.rs). It utilizes an AdamW optimizer.
+
+## Train a Model from Scratch
 ### Tokenization
 The [`tinystories-10k`](https://huggingface.co/datasets/flpelerin/tinystories-10k) dataset is included in this repository under `./stories.parquet`. Any `.parquet` file, who's first column contains the text entries to train on, can be used.
 
