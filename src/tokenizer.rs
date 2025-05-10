@@ -349,7 +349,7 @@ impl Dataset {
         let samples = entries
             .map(|&entry| {
                 let entry_length = entry.size()[0];
-                let start = rand::random_range(0..(entry_length - batch_length));
+                let start = rand::random_range(0..=(entry_length - batch_length));
                 entry.narrow(-1, start, batch_length)
             })
             .collect::<Vec<_>>();
