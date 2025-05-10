@@ -22,7 +22,7 @@ cargo run --release -- --seed 1234 tokenize \
 --data-parquet stories.parquet \
 --transformer-config-file example/transformer_config.ron
 ```
-This will generate a file in `datasets/dataset_512_stories.parquet.ron`, containing the tokenized dataset.
+This will generate a file in `datasets/dataset_2048_stories.parquet.ron`, containing the tokenized dataset.
 
 Next, train a model on the tokenized dataset.
 ```sh
