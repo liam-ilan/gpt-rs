@@ -28,15 +28,13 @@ cargo run --release -- generate \
 --transformer-safetensors example/trained_transformer.safetensors
 ```
 
-> Once upon a time, there was a little boy named Timmy. Timmy loved to play with his toys to drink, especially his favorite toy truck. One day, Timmy's mommy said, "Timmy, I'm going to the park with locks." Timmy was very excited and started to play with his toys all day.
+> Once upon a time, there was a little boy named Timmy. Timmy liked to play outside and play with his toys when he saw a bird in the sky. He was very excited to see what it was where it was, so he asked the bird if it could be like to fly to the clouds. The bird said yes! 
+>
+> Timmy and his owner went out of the forest and went to the park. They were so happy to see the bird in the park. But then, the bird saw a big bird who was trying to feet it. Timmy and his mom were very scared and wanted to help. They decided to say hello and stay in the woods. They said he could not find the bird's family. They said they could grow. They said they could make the bird happy.
 > 
-> As they were playing, Timmy saw a shovel near the corner of the grass. He asked his mommy if he could buy it on the floor. Billy said yes, but Timmy said no.
+> Later that day, Timmy and his family went to the park to play. They got a new bird in the sky. They were happy and said, "Thank you, mom! You are so kind." They went back to the park. They played with the ball every day.
 > 
-> After dinner, Timmy went outside and found a nice jeep. She asked Timmy to take his toy car and they fold it together. Timmy was so happy that he had found the toy car to sit in the mailbox.
-> 
-> After a while, Timmy went back home and found it under the cereal bed. He started to cry and his mom said, "Wow, mommy! Give it back to your room!" Timmy smiled and said, "Thank you, Timmy! You can make it go too fast." From that day on, Timmy always made sure to always ask his mom if he could have a new toy for his sister." 
-> 
-> Timmy listened to his mom and said, "I will go to the store to play with my
+> After that, Timmy and his family went to the park to play. They saw something very big and wide and round. They decided to pretend it was a big, red car to play. They played with the car and had lots of fun.
 
 ## Navigating the Codebase
 This implementation was built to be as verbose as possible. The core of the model can be found under [`./src/model.rs`](./src/model.rs), heavily inspired by Karpathy's [minGPT](https://github.com/karpathy/minGPT).
