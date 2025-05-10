@@ -251,6 +251,14 @@ fn main() -> anyhow::Result<()> {
             let transformer = model::transformer(&(var_store.root() / "transformer"), &config);
             var_store.load(transformer_safetensors)?;
 
+            // Count parameters.
+            let param_count = var_store
+                .trainable_variables()
+                .iter()
+                .map(|tensor| tensor.size().into_iter().product::<i64>())
+                .sum::<i64>();
+            println!("Loaded model with {param_count} parameters.");
+
             // Deserialize dataset.
             let dataset = tokenizer::Dataset::from_ron(dataset_file, device)?;
 

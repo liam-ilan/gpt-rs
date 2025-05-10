@@ -49,7 +49,7 @@ cargo run --release -- --seed 1234 tokenize \
 This will generate a file in `datasets/dataset_2048_stories.parquet.ron`, containing the tokenized dataset.
 
 ### Training
-Next, train a model on the tokenized dataset.
+Train a model on the tokenized dataset.
 ```sh
 cargo run --release -- --seed 1234 train \
 --dataset-file datasets/dataset_2048_stories.parquet.ron \
@@ -67,6 +67,8 @@ This will generate `.safetensors` checkpoints in a directory under `./training`.
 > --train-config-file example/train_config.ron \
 > --transformer-config-file example/transformer_config.ron
 > ```
+
+> The example configuration in the repo will yield a 2.1M parameter model, Ronen Eldan and Yuanzhi Li were able to produce a 1M parameter model with reasonable performance in [*TinyStories: How Small Can Language Models Be and Still Speak Coherent English?*](https://arxiv.org/pdf/2305.07759), so it may be possible to make the model even more lightweight, especially for CPU training.
 
 ### Generating Text
 You can generate text from your trained model with
