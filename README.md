@@ -1,5 +1,5 @@
 # `gpt-rs`
-An implementation of a causal decoder transformer and BPE tokeinzer.
+An implementation of a causal decoder transformer and BPE tokenizer.
 
 *Built with Rust 🦀 and [`tch-rs`](https://github.com/LaurentMazare/tch-rs) 🔥.*
 
@@ -38,9 +38,9 @@ cargo run --release -- generate \
 
 ## Train a Model from Scratch
 ### Tokenization
-The [`tinystories-10k`](https://huggingface.co/datasets/flpelerin/tinystories-10k) dataset is included in this repository under `./stories.parquet`. Any `.parquet` file, who's first column contains the text entries to train on, can be used.
+The [`tinystories-10k`](https://huggingface.co/datasets/flpelerin/tinystories-10k) dataset is included in this repository under [`./stories.parquet`](./stories.parquet). Any `.parquet` file, who's first column contains the text entries to train on, can be used.
 
-Start by tokenizing the `stories.parquet` dataset. 
+Start by tokenizing the `stories.parquet` dataset,
 ```sh
 cargo run --release -- --seed 1234 tokenize \
 --data-parquet stories.parquet \
@@ -49,7 +49,7 @@ cargo run --release -- --seed 1234 tokenize \
 This will generate a file in `datasets/dataset_2048_stories.parquet.ron`, containing the tokenized dataset.
 
 ### Training
-Train a model on the tokenized dataset.
+Train a model on the tokenized dataset,
 ```sh
 cargo run --release -- --seed 1234 train \
 --dataset-file datasets/dataset_2048_stories.parquet.ron \
@@ -85,18 +85,23 @@ cargo run --release -- generate \
 This implementation was built to be as verbose as possible. The core of the model can be found under [`./src/model.rs`](./src/model.rs), heavily inspired by Karpathy's [minGPT](https://github.com/karpathy/minGPT).
 
 Some details:
-- 4 dropout layers per block, one post feed forward, one post attention head, and one on each residual [Residual Dropout: A Simple Approach to Improve Transformer’s Data Efficiency](https://aclanthology.org/2024.sigul-1.35.pdf). There is also a dropout applied post embedding.
+- 4 dropout layers per block, one post feed forward, one post attention head, and one on each residual. See [Residual Dropout: A Simple Approach to Improve Transformer’s Data Efficiency](https://aclanthology.org/2024.sigul-1.35.pdf). There is also a dropout applied post embedding.
 - Layer norm is applied prior to the multi-attention head/feed forward in each block (Pre-LN), see [On Layer Normalization in the Transformer Architecture](https://arxiv.org/pdf/2002.04745).
 
-The BPE tokenizer can be found under [`./src/tokenizer.rs`](./src/tokeinzer.rs). Tokenized datasets are serialized into `.ron` (Rusty-Object-Notation) files for later use. The tokenizer is modified from a classing BPE to include space-prefixing, no merges across words, and some do-not-merge tokens.
+The BPE tokenizer can be found under [`./src/tokenizer.rs`](./src/tokenizer.rs). Tokenized datasets are serialized into `.ron` (Rusty-Object-Notation) files for later use. The tokenizer includes space-prefixing, no merges across words, and some do-not-merge tokens.
 
-The training loop can be found under [`./src/train.rs`](./src/train.rs). It utilizes an AdamW optimizer. There is no learning rate scheduling in this branch, take a look at the [`linear_warmup-cosine-decay` branch](https://github.com/liam-ilan/gpt-rs/tree/linear-warmup-cosine-decay) for an implementation of a more refined scheduler (though it may be out of date with `main`).
+The training loop can be found under [`./src/train.rs`](./src/train.rs). It utilizes an AdamW optimizer. There is no learning rate scheduling in this branch, take a look at the [`linear-warmup-cosine-decay` branch](https://github.com/liam-ilan/gpt-rs/tree/linear-warmup-cosine-decay) for an implementation of a more refined scheduler (though it may be out of date with [`main`](https://github.com/liam-ilan/gpt-rs/tree/main)).
 
 ## Advanced Usage
 Custom models and training strategies can be configured with `.ron` files. See [`./example/train_config.ron`](./example/train_config.ron) and [`./example/transformer_config.ron`](./example/transformer_config.ron) for example configuration.
 
 - Run `cargo run --release -- -h` to get information on what commands are available, and upper level arguments (ie. seed, MPS). 
 - Run `cargo run --release -- <COMMAND> -h` to get information on what arguments specific commands take.
+
+Some important arguments:
+- The tch and Rust RNGs can be seed with the `--seed` argument, ie `cargo run --release -- --seed 1234 <COMMAND>`
+- Training can start from a checkpoint, just pass the `--transformer-safetensors` argument to the `train`.
+- Temperature can be modified when generating text, just pass the `--temperature` command to `generate`.
 
 ## Author
 Built by [Liam Ilan](https://www.liamilan.com/), made in Canada 🇨🇦 ❤️.
