@@ -3,6 +3,8 @@ An implementation of a causal decoder transformer and BPE tokenizer.
 
 *Built with Rust 🦀 and [`tch-rs`](https://github.com/LaurentMazare/tch-rs) 🔥.*
 
+![Transformer Diagram](./images/transformer.drawio.png)
+
 ## Quickstart
 This project relies on `just` for script management. Install it with cargo,
 

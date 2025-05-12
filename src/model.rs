@@ -203,6 +203,8 @@ fn attention_head(var_store: &nn::Path, config: &TransformerConfig) -> impl nn::
 
 /// Multiple attention heads in parallel.
 ///
+/// Mixes information between heads with a final linear layer.
+///
 /// The input and output are of shape `(..., context_length, embedding_size)`.
 fn multiple_attention_head(var_store: &nn::Path, config: &TransformerConfig) -> impl nn::ModuleT {
     // Extract config.
@@ -230,7 +232,8 @@ fn multiple_attention_head(var_store: &nn::Path, config: &TransformerConfig) -> 
         // The concatenation results in a ... `context_length` * `embedding_size` shaped matrix.
         let res = Tensor::cat(res.as_slice(), -1);
 
-        // Finally forward via the projection layer.
+        // Finally forward via the projection layer,
+        // to mix information between heads.
         projection.forward_t(&res, train)
     })
 }
