@@ -357,13 +357,13 @@ pub fn transformer(var_store: &nn::Path, config: &TransformerConfig) -> impl nn:
     // and softmax is invariant to bias shifts.
     let linear_head = linear_no_bias(&(var_store / "linear_head"), embedding_size, vocab_size);
 
-    // Store indicies of input context on device.
-    let indicies = Tensor::arange(context_length, (Kind::Int64, var_store.device()));
+    // Store indices of input context on device.
+    let indices = Tensor::arange(context_length, (Kind::Int64, var_store.device()));
 
     nn::func_t(move |input, train| {
         // Get embedding.
         let token_embedding = token_embedding.forward_t(input, train);
-        let position_embedding = position_embedding.forward_t(&indicies, train);
+        let position_embedding = position_embedding.forward_t(&indices, train);
         let embedding = position_embedding + token_embedding;
 
         // Apply dropout.

@@ -208,7 +208,7 @@ impl Dataset {
                 while let (Some((first_index, &first_id)), Some(&(second_index, &second_id))) =
                     (old_entry.next(), old_entry.peek())
                 {
-                    // Update indicies to account for tokens lost to prior merges.
+                    // Update indices to account for tokens lost to prior merges.
                     let (first_index, second_index) = (
                         first_index - lost_tokens_count,
                         second_index - lost_tokens_count,
@@ -272,7 +272,7 @@ impl Dataset {
             while let (Some((first_index, &first_id)), Some(&(second_index, &second_id))) =
                 (old_entry.next(), old_entry.peek())
             {
-                // Update indicies to account for tokens lost to prior merges.
+                // Update indices to account for tokens lost to prior merges.
                 let (first_index, second_index) = (
                     first_index - lost_tokens_count,
                     second_index - lost_tokens_count,
