@@ -33,7 +33,7 @@ pub fn generate(
         let context_length = min(result_length, transformer_context_length);
         let context = result.narrow(-1, context_start, context_length);
 
-        // Pad context with an arbritrary char so that transformer can accept it.
+        // Pad context with an arbritrary token so that the transformer can accept it.
         let context = context.pad(
             [0, transformer_context_length - context_length],
             "constant",
