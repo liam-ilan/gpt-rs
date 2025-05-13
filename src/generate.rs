@@ -40,15 +40,17 @@ pub fn generate(
             0.,
         );
 
-        // Forward through model.
-        let logits = transformer.forward_t(&context, false) / temperature;
-        let probabilities = logits.softmax(-1, Kind::Float);
-        let sample = probabilities
-            .multinomial(1, false)
-            .view([transformer_config.context_length as i64]);
+        // Forward through model, and select correct token.
+        let logits = transformer.forward_t(&context, false);
+        let logits = logits.narrow(-2, context_length - 1, 1) / temperature;
 
-        // Grab last token from input context.
-        let next_token = sample.get(context_length - 1).view([1]);
+        // Get probabilties.
+        let probabilities = logits.softmax(-1, Kind::Float);
+
+        // Sample next token.
+        let next_token = probabilities.multinomial(1, false).view(1);
+
+        // Add to result.
         result = Tensor::cat(&[&result, &next_token], -1);
     }
 
